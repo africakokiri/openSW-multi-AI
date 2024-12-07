@@ -21,6 +21,7 @@ st.markdown(
                 display: flex;
                 flex-wrap: wrap;
                 flex-direction: row;
+                align-items: flex-start;
             }
             
             div.stColumn:nth-child(2) > div:nth-child(1) > div:nth-child(1) > div:nth-child(1) > .stChatMessage {
@@ -158,7 +159,7 @@ async def fetch_all_responses(prompt):
 
 # 초기 선택 옵션 설정
 options = ["ChatGPT", "Gemini", "Claude", "Llama", "Qwen"]
-default_selection = ["ChatGPT", "Gemini", "Claude", "Llama"]
+default_selection = ["ChatGPT", "Gemini", "Claude"]
 
 # 유저의 새로운 prompt 입력
 prompt = st.chat_input("프롬프트를 입력하세요.")
