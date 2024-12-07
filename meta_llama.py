@@ -40,7 +40,7 @@ def llama_prompt(prompt):
         },
         data=json.dumps(
             {
-                "model": "meta-llama/Meta-Llama-3.1-405B-Instruct-Turbo",
+                "model": "meta-llama/Llama-3.2-90B-Vision-Instruct-Turbo",
                 "messages": [
                     {
                         "role": "user",
@@ -58,6 +58,3 @@ def llama_prompt(prompt):
     content = res_to_json["choices"][0]["message"].get("content")
 
     return content
-
-
-print(llama_prompt("안녕"))

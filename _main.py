@@ -12,7 +12,7 @@ st.markdown(
     """
         <style>
             div.st-emotion-cache-keje6w:nth-child(1) {
-                max-width: 320px;
+                max-width: 360px;
             }
             
             .st-emotion-cache-14hz42n > div:nth-child(1) {
@@ -21,10 +21,19 @@ st.markdown(
             }
             
             div.st-emotion-cache-12w0qpk:nth-child(1), div.st-emotion-cache-12w0qpk:nth-child(2), div.st-emotion-cache-12w0qpk:nth-child(3), div.st-emotion-cache-12w0qpk:nth-child(4){
-                min-width: 320px;
-                max-width: 320px;
+                min-width: 400px;
+                max-width: 400px;
             }
             
+            .st-emotion-cache-1khdzpl > div:nth-child(1) .stColumn {
+                background-color: black;
+            }
+            
+            div.st-emotion-cache-12w0qpk:nth-child(1), div.st-emotion-cache-12w0qpk:nth-child(2), div.st-emotion-cache-12w0qpk:nth-child(3), div.st-emotion-cache-12w0qpk:nth-child(4) {
+                background-color: #F1F2F6;
+                border-radius: 8px;
+                padding-right: 24px;
+            }
         </style>
     """,
     unsafe_allow_html=True,
@@ -101,44 +110,61 @@ with All:
     input_as_col, output_as_col = st.columns(2)
 
     with input_as_col:
-        with st.chat_message("user"):
-            st.markdown("**USER**")
+        if not prompt:
+            with st.chat_message("user"):
+                st.markdown("**USER**")
 
         # 이전 입력도 포함하여 보여주기
         for prompt_text in st.session_state["prompt_history"]:
-            st.write(prompt_text)
+            with st.chat_message("user"):
+                st.write(prompt_text)
 
     with output_as_col:
         gpt_as_col, gemini_as_col, claude_as_col, llama_as_col = st.columns(4)
 
         with gpt_as_col:
-            with st.chat_message("ai", avatar="./assets/gpt.svg"):
-                st.markdown("**openAI: gpt-4o-mini**")
-
-            # 이전 응답도 포함하여 보여주기
-            for response in st.session_state["gpt_responses"]:
-                st.write(response)
+            # prompt가 없으면 빈 메시지, 있으면 이전 응답들 보여주기
+            if prompt:
+                # 이전 응답도 포함하여 보여주기
+                for response in st.session_state["gpt_responses"]:
+                    with st.chat_message("ai", avatar="./assets/gpt.svg"):
+                        st.write(response)
+            else:
+                with st.chat_message("ai", avatar="./assets/gpt.svg"):
+                    st.markdown("**openAI: gpt-4o-mini**")
 
         with gemini_as_col:
-            with st.chat_message("ai", avatar="./assets/gemini.svg"):
-                st.markdown("**Google: Gemini-1.5-flash**")
+            if not prompt:
+                with st.chat_message("ai", avatar="./assets/gemini.svg"):
+                    st.markdown("**Google: Gemini-1.5-flash**")
 
-            for response in st.session_state["gemini_responses"]:
-                st.write(response)
+            if prompt:
+                # 이전 응답도 포함하여 보여주기
+                for response in st.session_state["gemini_responses"]:
+                    with st.chat_message("ai", avatar="./assets/gemini.svg"):
+                        st.write(response)
 
         with claude_as_col:
-            with st.chat_message("ai", avatar="./assets/claude.svg"):
-                st.markdown("**Anthropic: Claude-3-5-sonnet**")
+            if not prompt:
+                with st.chat_message("ai", avatar="./assets/claude.svg"):
+                    st.markdown("**Anthropic: Claude-3-5-sonnet**")
 
-            for response in st.session_state["claude_responses"]:
-                st.write(response)
+            if prompt:
+                # 이전 응답도 포함하여 보여주기
+                for response in st.session_state["claude_responses"]:
+                    with st.chat_message("ai", avatar="./assets/claude.svg"):
+                        st.write(response)
 
         with llama_as_col:
-            with st.chat_message("ai", avatar="./assets/meta.png"):
-                st.markdown("**Meta: Llama3.2-90b-vision**")
+            if not prompt:
+                with st.chat_message("ai", avatar="./assets/meta.png"):
+                    st.markdown("**Meta: Llama-3.2-90B-Vision-Instruct-Turbo**")
 
-            for response in st.session_state["llama_responses"]:
-                st.write(response)
+            if prompt:
+                # 이전 응답도 포함하여 보여주기
+                for response in st.session_state["llama_responses"]:
+                    with st.chat_message("ai", avatar="./assets/meta.png"):
+                        st.write(response)
 
 
 # 탭: chatGPT
@@ -146,28 +172,40 @@ with gpt_as_tab:
     st.title("💬 openAI: gpt-4o-mini")
     st.caption("🚀 A Streamlit chatbot powered by openAI ChatGPT")
     for response in st.session_state["gpt_responses"]:
-        st.write(response)
+        with st.chat_message("user"):
+            st.write(prompt)
+        with st.chat_message("ai", avatar="./assets/gpt.svg"):
+            st.write(response)
 
 # 탭: Gemini
 with gemini_as_tab:
     st.title("💬 Google: Gemini-1.5-flash")
     st.caption("🚀 A Streamlit chatbot powered by Google Gemini")
     for response in st.session_state["gemini_responses"]:
-        st.write(response)
+        with st.chat_message("user"):
+            st.write(prompt)
+        with st.chat_message("ai", avatar="./assets/gemini.svg"):
+            st.write(response)
 
 # 탭: Claude
 with claude_as_tab:
     st.title("💬 Anthropic: Claude-3-5-sonnet")
     st.caption("🚀 A Streamlit chatbot powered by Anthropic Claude")
     for response in st.session_state["claude_responses"]:
-        st.write(response)
+        with st.chat_message("user"):
+            st.write(prompt)
+        with st.chat_message("ai", avatar="./assets/claude.svg"):
+            st.write(response)
 
 # 탭: llama
 with llama_as_tab:
-    st.title("💬 Meta: Llama3.2-90b-vision")
+    st.title("💬 Meta: Llama-3.2-90B-Vision-Instruct-Turbo")
     st.caption("🚀 A Streamlit chatbot powered by Meta LLaMA")
     for response in st.session_state["llama_responses"]:
-        st.write(response)
+        with st.chat_message("user"):
+            st.write(prompt)
+        with st.chat_message("ai", avatar="./assets/meta.png"):
+            st.write(response)
 
 # 탭: 설정
 with settings:
