@@ -15,19 +15,19 @@ st.session_state["prompt"] = prompt
 
 # 비동기 API 호출 함수 정의
 async def fetch_gpt_response(prompt):
-    return gpt_prompt(prompt) if prompt else "GPT 응답을 기다리는 중..."
+    return gpt_prompt(prompt) if prompt else "gpt-4o-mini"
 
 
 async def fetch_gemini_response(prompt):
-    return gemini_prompt(prompt) if prompt else "Gemini 응답을 기다리는 중..."
+    return gemini_prompt(prompt) if prompt else "Gemini-1.5-flash"
 
 
 async def fetch_claude_response(prompt):
-    return claude_prompt(prompt) if prompt else "Claude 응답을 기다리는 중..."
+    return claude_prompt(prompt) if prompt else "Claude-3-5-sonnet"
 
 
 async def fetch_llama_response(prompt):
-    return llama_prompt(prompt) if prompt else "LLaMA 응답을 기다리는 중..."
+    return llama_prompt(prompt) if prompt else "Llama3.2-90b-vision"
 
 
 # 비동기 처리 함수
@@ -54,20 +54,28 @@ with All:
     gpt_as_col, gemini_as_col, claude_as_col, llama_as_col = st.columns(4)
 
     with gpt_as_col:
-        st.write(responses[0])  # GPT 응답
+        with st.chat_message("ai", avatar="./assets/gpt.svg"):
+            st.markdown("**openAI: gpt-4o-mini**")
+            st.write(responses[0])  # GPT 응답
 
     with gemini_as_col:
-        st.write(responses[1])  # Gemini 응답
+        with st.chat_message("ai", avatar="./assets/gemini.svg"):
+            st.markdown("**Google: Gemini-1.5-flash**")
+            st.write(responses[1])  # Gemini 응답
 
     with claude_as_col:
-        st.write(responses[2])  # Claude 응답
+        with st.chat_message("ai", avatar="./assets/claude.svg"):
+            st.markdown("**Anthropic: Claude-3-5-sonnet**")
+            st.write(responses[2])  # Claude 응답
 
     with llama_as_col:
-        st.write(responses[3])  # LLaMA 응답
+        with st.chat_message("ai", avatar="./assets/meta.png"):
+            st.markdown("**Meta: Llama3.2-90b-vision**")
+            st.write(responses[3])  # LLaMA 응답
 
 # 탭: chatGPT
 with gpt_as_tab:
-    st.title("💬 openAI: GPT-4o-mini")
+    st.title("💬 openAI: gpt-4o-mini")
     st.caption("🚀 A Streamlit chatbot powered by openAI ChatGPT")
     st.write(responses[0])
 
@@ -79,12 +87,12 @@ with gemini_as_tab:
 
 # 탭: Claude
 with claude_as_tab:
-    st.title("💬 Anthropic: claude-3-5-sonnet")
+    st.title("💬 Anthropic: Claude-3-5-sonnet")
     st.caption("🚀 A Streamlit chatbot powered by Anthropic Claude")
     st.write(responses[2])
 
 # 탭: llama
 with llama_as_tab:
-    st.title("💬 Meta: llama3.2-90b-vision")
+    st.title("💬 Meta: Llama3.2-90b-vision")
     st.caption("🚀 A Streamlit chatbot powered by Meta LLaMA")
     st.write(responses[3])
