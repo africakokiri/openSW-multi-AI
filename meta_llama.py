@@ -1,4 +1,3 @@
-import streamlit as st
 from llamaapi import LlamaAPI
 from dotenv import load_dotenv
 import os
