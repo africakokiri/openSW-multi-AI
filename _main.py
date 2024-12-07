@@ -14,23 +14,34 @@ prompt = st.chat_input("프롬프트를 입력하세요.")
 st.session_state["prompt"] = prompt
 
 st.markdown(
-    """
+    f"""
         <style>
-            .stColumn {
+            .stColumn {{
                 background-color: #F1F2F6;
                 border-radius: 8px;
                 height: 510px;
                 padding: 16px;
                 max-width: 280px;
-            }
+            }}
             
-            .stChatMessage {
+            .stChatMessage {{
                 padding: 0px;
                 width: 100%;
                 display: flex;
                 justify-content: center;
-            }
+            }}
+            
+            .prompt {{
+                position: absolute;
+                right: 0px;
+                background-color: #F1F2F6;
+                padding: 8px 16px 8px;
+                border-radius: 8px;
+            }}
         </style>
+        <div class="prompt">
+            {prompt}
+        </div>
     """,
     unsafe_allow_html=True,
 )
@@ -74,7 +85,16 @@ All, gpt_as_tab, gemini_as_tab, claude_as_tab, llama_as_tab, settings = st.tabs(
 
 # 탭: 전체
 with All:
-    gpt_as_col, gemini_as_col, claude_as_col, llama_as_col = st.columns(4)
+    input_as_col, gpt_as_col, gemini_as_col, claude_as_col, llama_as_col = st.columns(5)
+
+    with input_as_col:
+        with st.chat_message("user"):
+            st.markdown("**USER**")
+
+        if prompt:
+            st.write(prompt)
+        else:
+            st.write("")
 
     with gpt_as_col:
         with st.chat_message("ai", avatar="./assets/gpt.svg"):
