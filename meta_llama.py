@@ -25,3 +25,6 @@ def llama_prompt(prompt):
     content = res_to_json["choices"][0]["message"].get("content")
 
     return content
+
+
+print(llama_prompt("안녕"))
