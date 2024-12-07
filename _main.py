@@ -22,17 +22,21 @@ st.markdown(
                 flex-wrap: wrap;
                 flex-direction: row;
             }
-
-            .st-emotion-cache-1khdzpl > div:nth-child(1) .stColumn {
-                background-color: black;
-            }
-
-            div.st-emotion-cache-4oy321:nth-child(1), div.st-emotion-cache-4oy321:nth-child(2), div.st-emotion-cache-4oy321:nth-child(3), div.st-emotion-cache-4oy321:nth-child(4), div.st-emotion-cache-4oy321:nth-child(5) {
+            
+            div.stColumn:nth-child(2) > div:nth-child(1) > div:nth-child(1) > div:nth-child(1) > .stChatMessage {
                 background-color: #F1F2F6;
                 border-radius: 8px;
                 padding-right: 24px;
                 min-width: 400px;
                 max-width: 400px;
+            }
+            
+               div.stColumn:nth-child(2) > div:nth-child(1) > div:nth-child(1) > div:nth-child(1) > .stElementContainer {
+                max-width: 120px;   
+            }
+
+            .st-emotion-cache-1khdzpl > div:nth-child(1) .stColumn {
+                background-color: black;
             }
         </style>
     """,
@@ -201,7 +205,7 @@ with settings_as_tab:
 
     # Add the option to disable AI in individual tabs
     st.session_state["disable_ai_in_tabs"] = st.checkbox(
-        "비활성화된 AI를 프로그램 전체에서 비활성화하여 응답 속도를 높입니다.",
+        "비활성화한 AI 모델을 프로그램 전체에서 비활성화하여 응답 속도를 높입니다.",
         value=True,
     )
 
@@ -265,17 +269,19 @@ with All:
 
         for config in ai_configs:
             if config["name"] in display_selection:
-                if not prompt:
-                    with st.chat_message("ai", avatar=config["avatar"]):
+                with st.chat_message("ai", avatar=config["avatar"]):
+                    if not prompt:
                         st.markdown(f"**{config['model']}**")
+                    else:
+                        # 응답과 해당 응답의 시간을 함께 결합
+                        responses_with_times = []
+                        for response, time in zip(config["responses"], config["times"]):
+                            responses_with_times.append(
+                                f"{response}\n\n응답 시간: {time:.2f} 초\n\n---\n\n"
+                            )
 
-                if prompt:
-                    # 이전 응답도 포함하여 보여주기
-                    for response in config["responses"]:
-                        with st.chat_message("ai", avatar=config["avatar"]):
-                            st.write(response)
-                    # 응답 시간 표시
-                    st.write(f"응답 시간: {sum(config['times']):.2f} 초")
+                        # 결합된 응답 표시 (응답 사이 간격 넓힘)
+                        st.markdown("\n\n".join(responses_with_times))
 
 # 탭: GPT
 with gpt_as_tab:
@@ -290,6 +296,9 @@ with gpt_as_tab:
             st.write(
                 f"응답 시간: {sum(st.session_state['response_times']['gpt']):.2f} 초"
             )
+    else:
+        st.markdown("# ~~💬 openAI: gpt-4o-mini~~")
+        st.write("해당 AI 모델은 비활성화되었습니다. 활성화는 설정 탭에서 가능합니다.")
 
 # 탭: Gemini
 with gemini_as_tab:
@@ -304,6 +313,9 @@ with gemini_as_tab:
             st.write(
                 f"응답 시간: {sum(st.session_state['response_times']['gemini']):.2f} 초"
             )
+    else:
+        st.markdown("# ~~💬 Google: Gemini-1.5-flash~~")
+        st.write("해당 AI 모델은 비활성화되었습니다. 활성화는 설정 탭에서 가능합니다.")
 
 # 탭: Claude
 with claude_as_tab:
@@ -318,6 +330,9 @@ with claude_as_tab:
             st.write(
                 f"응답 시간: {sum(st.session_state['response_times']['claude']):.2f} 초"
             )
+    else:
+        st.markdown("# ~~💬 Anthropic: Claude-3-5-sonnet~~")
+        st.write("해당 AI 모델은 비활성화되었습니다. 활성화는 설정 탭에서 가능합니다.")
 
 # 탭: Llama
 with llama_as_tab:
@@ -332,6 +347,10 @@ with llama_as_tab:
             st.write(
                 f"응답 시간: {sum(st.session_state['response_times']['llama']):.2f} 초"
             )
+    else:
+        st.markdown("# ~~💬 Meta: Llama-3.2-90B-Vision-Instruct-Turbo~~")
+        st.write("해당 AI 모델은 비활성화되었습니다. 활성화는 설정 탭에서 가능합니다.")
+
 
 # 탭: Qwen
 with qwen_as_tab:
@@ -346,3 +365,6 @@ with qwen_as_tab:
             st.write(
                 f"응답 시간: {sum(st.session_state['response_times']['qwen']):.2f} 초"
             )
+    else:
+        st.markdown("# ~~💬 Qwen: Qwen2.5-72B-Instruct-Turbo~~")
+        st.write("해당 AI 모델은 비활성화되었습니다. 활성화는 설정 탭에서 가능합니다.")
