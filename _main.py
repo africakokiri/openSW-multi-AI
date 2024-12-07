@@ -127,7 +127,7 @@ if prompt:
 
 # 탭 구성
 All, gpt_as_tab, gemini_as_tab, claude_as_tab, llama_as_tab, settings = st.tabs(
-    ["전체", "chatGPT", "Gemini", "Claude", "llama", "설정"]
+    ["전체", "chatGPT", "Gemini", "Claude", "Llama", "설정"]
 )
 
 # 탭: 전체
@@ -207,16 +207,52 @@ with All:
                     f"응답 시간: {sum(st.session_state['response_times']['llama']):.2f} 초"
                 )
 
-# 나머지 탭 구성 (개별 탭에 대해서도 응답 시간 표시 추가 가능)
-# 예시: 탭에서 응답 시간 표시
+# 탭: GPT
 with gpt_as_tab:
     st.title("💬 openAI: gpt-4o-mini")
-    st.caption("🚀 A Streamlit chatbot powered by openAI ChatGPT")
     for response in st.session_state["gpt_responses"]:
         with st.chat_message("user"):
             st.write(prompt)
         with st.chat_message("ai", avatar="./assets/gpt.svg"):
             st.write(response)
-    st.write(f"응답 시간: {sum(st.session_state['response_times']['gpt']):.2f} 초")
+    if st.session_state["response_times"]["gpt"]:
+        st.write(f"응답 시간: {sum(st.session_state['response_times']['gpt']):.2f} 초")
 
-# 같은 방식으로 다른 탭에서도 응답 시간을 추가할 수 있습니다.
+# 탭: Gemini
+with gemini_as_tab:
+    st.title("💬 Google: Gemini-1.5-flash")
+    for response in st.session_state["gemini_responses"]:
+        with st.chat_message("user"):
+            st.write(prompt)
+        with st.chat_message("ai", avatar="./assets/gemini.svg"):
+            st.write(response)
+    if st.session_state["response_times"]["gemini"]:
+        st.write(
+            f"응답 시간: {sum(st.session_state['response_times']['gemini']):.2f} 초"
+        )
+
+# 탭: Claude
+with claude_as_tab:
+    st.title("💬 Anthropic: Claude-3-5-sonnet")
+    for response in st.session_state["claude_responses"]:
+        with st.chat_message("user"):
+            st.write(prompt)
+        with st.chat_message("ai", avatar="./assets/claude.svg"):
+            st.write(response)
+    if st.session_state["response_times"]["claude"]:
+        st.write(
+            f"응답 시간: {sum(st.session_state['response_times']['claude']):.2f} 초"
+        )
+
+# 탭: Llama
+with llama_as_tab:
+    st.title("💬 Meta: Llama-3.2-90B-Vision-Instruct-Turbo")
+    for response in st.session_state["llama_responses"]:
+        with st.chat_message("user"):
+            st.write(prompt)
+        with st.chat_message("ai", avatar="./assets/meta.png"):
+            st.write(response)
+    if st.session_state["response_times"]["llama"]:
+        st.write(
+            f"응답 시간: {sum(st.session_state['response_times']['llama']):.2f} 초"
+        )
