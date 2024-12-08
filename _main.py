@@ -73,10 +73,10 @@ if "qwen_responses" not in st.session_state:
     st.session_state["qwen_responses"] = []
 
 if "ai_display_selection" not in st.session_state:
-    st.session_state["ai_display_selection"] = ["ChatGPT", "Gemini", "Claude", "Llama"]
+    st.session_state["ai_display_selection"] = ["ChatGPT", "Gemini", "Claude"]
 
 if "disable_ai_in_tabs" not in st.session_state:
-    st.session_state["disable_ai_in_tabs"] = True  # Set to True by default
+    st.session_state["disable_ai_in_tabs"] = True
 
 
 # 비동기 API 호출 함수 정의
