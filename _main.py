@@ -257,7 +257,7 @@ with records_as_tab:
                 st.markdown(
                     f"""
              <p>
-                 {result[1]["gpt_response"].replace("['", "").replace("']", "").replace("\\n", "<br />")}
+                 {result[1]["gpt_response"].replace("['", "").replace("']", "").replace("\\n", "<br />").replace("`", "")}
              </p>
              """,
                     unsafe_allow_html=True,
@@ -266,7 +266,7 @@ with records_as_tab:
                 st.markdown(
                     f"""
              <p>
-                 {result[1]["gemini_response"].replace("['", "").replace("']", "").replace("\\n", "<br />")}
+                 {result[1]["gemini_response"].replace("['", "").replace("']", "").replace("\\n", "<br />").replace("`", "")}
              </p>
              """,
                     unsafe_allow_html=True,
@@ -275,7 +275,7 @@ with records_as_tab:
                 st.markdown(
                     f"""
              <p>
-                 {result[1]["claude_response"].replace("['", "").replace("']", "").replace("\\n", "<br />").strip("[]").strip('""')}
+                 {result[1]["claude_response"].replace("['", "").replace("']", "").replace("\\n", "<br />").strip("[]").strip('""').replace("`", "")}
              </p>
              """,
                     unsafe_allow_html=True,
@@ -284,7 +284,7 @@ with records_as_tab:
                 st.markdown(
                     f"""
              <p>
-                 {result[1]["llama_response"].replace("['", "").replace("']", "").replace("\\n", "<br />")}
+                 {result[1]["llama_response"].replace("['", "").replace("']", "").replace("\\n", "<br />").replace("`", "")}
              </p>
              """,
                     unsafe_allow_html=True,
@@ -293,7 +293,7 @@ with records_as_tab:
                 st.markdown(
                     f"""
              <p>
-                 {result[1]["qwen_response"].replace("['", "").replace("']", "").replace("\\n", "<br />")}
+                 {result[1]["qwen_response"].replace("['", "").replace("']", "").replace("\\n", "<br />").replace("`", "")}
              </p>
              """,
                     unsafe_allow_html=True,
