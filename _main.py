@@ -469,22 +469,3 @@ with qwen_as_tab:
         st.write(
             "해당 AI 모델은 비활성화되었습니다. 설정 탭에서 활성화 할 수 있습니다."
         )
-
-# 'prompt_history'가 세션에 없으면 초기화
-if "prompt_history" not in st.session_state:
-    st.session_state["prompt_history"] = []
-
-if prompt:
-    st.session_state["prompt_history"].append(
-        {
-            "prompt": prompt,
-            "gpt_response": str(st.session_state.get("gpt_responses", "")),
-            "gemini_response": str(st.session_state.get("gemini_responses", "")),
-            "claude_response": str(st.session_state.get("claude_responses", "")),
-            "llama_response": str(st.session_state.get("llama_responses", "")),
-            "qwen_response": str(st.session_state.get("qwen_responses", "")),
-        }
-    )
-
-# 로컬 스토리지에 저장
-set_local_storage("prompt_history", st.session_state["prompt_history"])
