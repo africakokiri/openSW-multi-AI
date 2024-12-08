@@ -211,10 +211,8 @@ if prompt:
     claude_as_tab,
     llama_as_tab,
     qwen_as_tab,
-    records_as_tab,
     settings_as_tab,
-) = st.tabs(["전체", "ChatGPT", "Gemini", "Claude", "Llama", "Qwen", "로그", "설정"])
-
+) = st.tabs(["전체", "ChatGPT", "Gemini", "Claude", "Llama", "Qwen", "설정"])
 
 # 탭: Settings
 with settings_as_tab:
@@ -236,70 +234,6 @@ with settings_as_tab:
         "비활성화한 AI 모델을 프로그램 전체에서 비활성화하여 응답 속도를 높입니다.",
         value=True,
     )
-
-
-# 탭: 기록
-with records_as_tab:
-    stored_prompts = localS.getItem("prompt_history")
-    st.markdown("#### 로그를 확인하시려면 새로고침 해 주세요!")
-
-    if stored_prompts:
-        st.button(
-            "로그 전체 삭제 ",
-            type="primary",
-            on_click=localS.deleteItem("prompt_history"),
-        )
-
-    if stored_prompts:
-        for result in stored_prompts:
-            with st.chat_message("user"):
-                st.write(result[1]["prompt"])
-            with st.chat_message("ai", avatar="./assets/gpt.svg"):
-                st.markdown(
-                    f"""
-             <p>
-                 {result[1]["gpt_response"].replace("['", "").replace("']", "").replace("\\n", "<br />")}
-             </p>
-             """,
-                    unsafe_allow_html=True,
-                )
-            with st.chat_message("ai", avatar="./assets/gemini.svg"):
-                st.markdown(
-                    f"""
-             <p>
-                 {result[1]["gemini_response"].replace("['", "").replace("']", "").replace("\\n", "<br />")}
-             </p>
-             """,
-                    unsafe_allow_html=True,
-                )
-            with st.chat_message("ai", avatar="./assets/claude.svg"):
-                st.markdown(
-                    f"""
-             <p>
-                 {result[1]["claude_response"].replace("['", "").replace("']", "").replace("\\n", "<br />").strip("[]").strip('""')}
-             </p>
-             """,
-                    unsafe_allow_html=True,
-                )
-            with st.chat_message("ai", avatar="./assets/meta.png"):
-                st.markdown(
-                    f"""
-             <p>
-                 {result[1]["llama_response"].replace("['", "").replace("']", "").replace("\\n", "<br />")}
-             </p>
-             """,
-                    unsafe_allow_html=True,
-                )
-            with st.chat_message("ai", avatar="./assets/qwen.png"):
-                st.markdown(
-                    f"""
-             <p>
-                 {result[1]["qwen_response"].replace("['", "").replace("']", "").replace("\\n", "<br />")}
-             </p>
-             """,
-                    unsafe_allow_html=True,
-                )
-
 
 # 탭: 전체
 with All:
