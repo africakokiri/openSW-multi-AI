@@ -1,6 +1,9 @@
 import asyncio
 import time
 import streamlit as st
+
+from streamlit_local_storage import LocalStorage
+
 from openai_gpt import gpt_prompt
 from google_gemini import gemini_prompt
 from anthropic_claude import claude_prompt
@@ -9,6 +12,28 @@ from qwen_qwen import qwen_prompt
 
 # 페이지 설정
 st.set_page_config(layout="wide")
+
+
+# 로컬 스토리지 초기화
+localS = LocalStorage()
+
+
+# localStorage에 저장된 prompt를 가져오는 함수
+def get_local_storage():
+    prompts = localS.getItem("prompt_history")
+
+    if prompts is None:
+        prompts = []
+    return prompts
+
+
+# localStorage에 prompt를 저장하는 함수
+def set_local_storage(key, value):
+    if value:
+        prompts = get_local_storage()
+        prompts.append(value)
+        localS.setItem(key, prompts)
+
 
 st.markdown(
     """
