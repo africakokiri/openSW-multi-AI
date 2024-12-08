@@ -236,7 +236,7 @@ with All:
                 "responses": st.session_state["gpt_responses"],
                 "times": st.session_state["response_times"]["gpt"],
                 "avatar": "./assets/gpt.svg",
-                "model": "openAI: gpt-4o-mini",
+                "model": "OpenAI: gpt-4o-mini",
             },
             {
                 "name": "Gemini",
@@ -287,7 +287,7 @@ with All:
 # 탭: GPT
 with gpt_as_tab:
     if "ChatGPT" in st.session_state["ai_display_selection"]:
-        st.title("💬 openAI: gpt-4o-mini")
+        st.title("💬 OpenAI: gpt-4o-mini")
         for response in st.session_state["gpt_responses"]:
             with st.chat_message("user"):
                 st.write(prompt)
@@ -298,7 +298,7 @@ with gpt_as_tab:
                 f"응답 시간: {sum(st.session_state['response_times']['gpt']):.2f} 초"
             )
     else:
-        st.markdown("# ~~💬 openAI: gpt-4o-mini~~")
+        st.markdown("# ~~💬 OpenAI: gpt-4o-mini~~")
         st.write(
             "해당 AI 모델은 비활성화되었습니다. 설정 탭에서 활성화 할 수 있습니다."
         )
