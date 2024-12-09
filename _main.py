@@ -252,7 +252,8 @@ with records_as_tab:
     if stored_prompts:
         for result in stored_prompts:
             with st.chat_message("user"):
-                st.write(result[1]["prompt"])
+                if result[1]["prompt"]:
+                    st.write(result[1]["prompt"])
             with st.chat_message("ai", avatar="./assets/gpt.svg"):
                 st.markdown(
                     f"""
