@@ -243,12 +243,11 @@ with records_as_tab:
     stored_prompts = localS.getItem("prompt_history")
     st.markdown("#### 로그를 확인하시려면 새로고침 해 주세요!")
 
+    def delete_prompt_history():
+        localS.deleteItem("prompt_history")
+
     if stored_prompts:
-        st.button(
-            "로그 전체 삭제 ",
-            type="primary",
-            on_click=localS.deleteItem("prompt_history"),
-        )
+        st.button("로그 전체 삭제", type="primary", on_click=delete_prompt_history)
 
     if stored_prompts:
         for result in stored_prompts:
@@ -258,7 +257,7 @@ with records_as_tab:
                 st.markdown(
                     f"""
              <p>
-                 {result[1]["gpt_response"].replace("['", "").replace("']", "").replace("\\n", "<br />")}
+                 {result[1]["gpt_response"].replace("['", "").replace("']", "").replace("\\n", "<br />").replace("`", "")}
              </p>
              """,
                     unsafe_allow_html=True,
@@ -267,7 +266,7 @@ with records_as_tab:
                 st.markdown(
                     f"""
              <p>
-                 {result[1]["gemini_response"].replace("['", "").replace("']", "").replace("\\n", "<br />")}
+                 {result[1]["gemini_response"].replace("['", "").replace("']", "").replace("\\n", "<br />").replace("`", "")}
              </p>
              """,
                     unsafe_allow_html=True,
@@ -276,7 +275,7 @@ with records_as_tab:
                 st.markdown(
                     f"""
              <p>
-                 {result[1]["claude_response"].replace("['", "").replace("']", "").replace("\\n", "<br />").strip("[]").strip('""')}
+                 {result[1]["claude_response"].replace("['", "").replace("']", "").replace("\\n", "<br />").strip("[]").strip('""').replace("`", "")}
              </p>
              """,
                     unsafe_allow_html=True,
@@ -285,7 +284,7 @@ with records_as_tab:
                 st.markdown(
                     f"""
              <p>
-                 {result[1]["llama_response"].replace("['", "").replace("']", "").replace("\\n", "<br />")}
+                 {result[1]["llama_response"].replace("['", "").replace("']", "").replace("\\n", "<br />").replace("`", "")}
              </p>
              """,
                     unsafe_allow_html=True,
@@ -294,7 +293,7 @@ with records_as_tab:
                 st.markdown(
                     f"""
              <p>
-                 {result[1]["qwen_response"].replace("['", "").replace("']", "").replace("\\n", "<br />")}
+                 {result[1]["qwen_response"].replace("['", "").replace("']", "").replace("\\n", "<br />").replace("`", "")}
              </p>
              """,
                     unsafe_allow_html=True,
@@ -312,8 +311,9 @@ with All:
 
         # 이전 입력도 포함하여 보여주기
         for prompt_text in st.session_state["prompt_history"]:
-            with st.chat_message("user"):
-                st.write(prompt_text)
+            if not isinstance(prompt_text, dict):
+                with st.chat_message("user"):
+                    st.write(prompt_text)
 
     with output_as_col:
         # Retrieve the selection from session state, defaulting to all options if not set
