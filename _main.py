@@ -252,7 +252,8 @@ with records_as_tab:
     if stored_prompts:
         for result in stored_prompts:
             with st.chat_message("user"):
-                st.write(result[1]["prompt"])
+                if result[1]["prompt"]:
+                    st.write(result[1]["prompt"])
             with st.chat_message("ai", avatar="./assets/gpt.svg"):
                 st.markdown(
                     f"""
@@ -379,11 +380,30 @@ with All:
 with gpt_as_tab:
     if "ChatGPT" in st.session_state["ai_display_selection"]:
         st.title("💬 OpenAI: gpt-4o-mini")
-        for response in st.session_state["gpt_responses"]:
-            with st.chat_message("user"):
-                st.write(prompt)
-            with st.chat_message("ai", avatar="./assets/gpt.svg"):
-                st.write(response)
+
+        # 'prompt_history'와 'gpt_responses'가 존재하는지 확인
+        if "prompt_history" in st.session_state and "gpt_responses" in st.session_state:
+            prompt_history = st.session_state["prompt_history"]
+            gpt_responses = st.session_state["gpt_responses"]
+
+            # 대화 기록을 순차적으로 표시
+            for i in range(len(prompt_history)):
+                # 유저의 프롬프트 표시 (유저 메시지가 먼저)
+                prompt_text = prompt_history[i]
+                if prompt_text and not isinstance(prompt_text, dict):
+                    with st.chat_message("user"):
+                        st.write(prompt_text)
+
+                # AI의 응답 표시 (AI 응답이 그 뒤에)
+                if i < len(gpt_responses):
+                    response = gpt_responses[i]
+                    with st.chat_message("ai", avatar="./assets/gpt.svg"):
+                        st.write(response)
+
+        else:
+            st.write("대화 내역이 없습니다.")
+
+        # 응답 시간 출력
         if st.session_state["response_times"]["gpt"]:
             st.write(
                 f"응답 시간: {sum(st.session_state['response_times']['gpt']):.2f} 초"
@@ -394,15 +414,38 @@ with gpt_as_tab:
             "해당 AI 모델은 비활성화되었습니다. 설정 탭에서 활성화 할 수 있습니다."
         )
 
+
 # 탭: Gemini
 with gemini_as_tab:
     if "Gemini" in st.session_state["ai_display_selection"]:
         st.title("💬 Google: Gemini-1.5-flash")
-        for response in st.session_state["gemini_responses"]:
-            with st.chat_message("user"):
-                st.write(prompt)
-            with st.chat_message("ai", avatar="./assets/gemini.svg"):
-                st.write(response)
+
+        # 'prompt_history'와 'gemini_responses'가 존재하는지 확인
+        if (
+            "prompt_history" in st.session_state
+            and "gemini_responses" in st.session_state
+        ):
+            prompt_history = st.session_state["prompt_history"]
+            gemini_responses = st.session_state["gemini_responses"]
+
+            # 대화 기록을 순차적으로 표시
+            for i in range(len(prompt_history)):
+                # 유저의 프롬프트 표시 (유저 메시지가 먼저)
+                prompt_text = prompt_history[i]
+                if prompt_text and not isinstance(prompt_text, dict):
+                    with st.chat_message("user"):
+                        st.write(prompt_text)
+
+                # AI의 응답 표시 (AI 응답이 그 뒤에)
+                if i < len(gemini_responses):
+                    response = gemini_responses[i]
+                    with st.chat_message("ai", avatar="./assets/gemini.svg"):
+                        st.write(response)
+
+        else:
+            st.write("대화 내역이 없습니다.")
+
+        # 응답 시간 출력
         if st.session_state["response_times"]["gemini"]:
             st.write(
                 f"응답 시간: {sum(st.session_state['response_times']['gemini']):.2f} 초"
@@ -413,15 +456,38 @@ with gemini_as_tab:
             "해당 AI 모델은 비활성화되었습니다. 설정 탭에서 활성화 할 수 있습니다."
         )
 
+
 # 탭: Claude
 with claude_as_tab:
     if "Claude" in st.session_state["ai_display_selection"]:
         st.title("💬 Anthropic: Claude-3.5-Sonnet")
-        for response in st.session_state["claude_responses"]:
-            with st.chat_message("user"):
-                st.write(prompt)
-            with st.chat_message("ai", avatar="./assets/claude.svg"):
-                st.write(response)
+
+        # 'prompt_history'와 'claude_responses'가 존재하는지 확인
+        if (
+            "prompt_history" in st.session_state
+            and "claude_responses" in st.session_state
+        ):
+            prompt_history = st.session_state["prompt_history"]
+            claude_responses = st.session_state["claude_responses"]
+
+            # 대화 기록을 순차적으로 표시
+            for i in range(len(prompt_history)):
+                # 유저의 프롬프트 표시 (유저 메시지가 먼저)
+                prompt_text = prompt_history[i]
+                if prompt_text and not isinstance(prompt_text, dict):
+                    with st.chat_message("user"):
+                        st.write(prompt_text)
+
+                # AI의 응답 표시 (AI 응답이 그 뒤에)
+                if i < len(claude_responses):
+                    response = claude_responses[i]
+                    with st.chat_message("ai", avatar="./assets/claude.svg"):
+                        st.write(response)
+
+        else:
+            st.write("대화 내역이 없습니다.")
+
+        # 응답 시간 출력
         if st.session_state["response_times"]["claude"]:
             st.write(
                 f"응답 시간: {sum(st.session_state['response_times']['claude']):.2f} 초"
@@ -432,15 +498,38 @@ with claude_as_tab:
             "해당 AI 모델은 비활성화되었습니다. 설정 탭에서 활성화 할 수 있습니다."
         )
 
+
 # 탭: Llama
 with llama_as_tab:
     if "Llama" in st.session_state["ai_display_selection"]:
         st.title("💬 Meta: Llama-3.2-90B-Vision-Instruct-Turbo")
-        for response in st.session_state["llama_responses"]:
-            with st.chat_message("user"):
-                st.write(prompt)
-            with st.chat_message("ai", avatar="./assets/meta.png"):
-                st.write(response)
+
+        # 'prompt_history'와 'llama_responses'가 존재하는지 확인
+        if (
+            "prompt_history" in st.session_state
+            and "llama_responses" in st.session_state
+        ):
+            prompt_history = st.session_state["prompt_history"]
+            llama_responses = st.session_state["llama_responses"]
+
+            # 대화 기록을 순차적으로 표시
+            for i in range(len(prompt_history)):
+                # 유저의 프롬프트 표시 (유저 메시지가 먼저)
+                prompt_text = prompt_history[i]
+                if prompt_text and not isinstance(prompt_text, dict):
+                    with st.chat_message("user"):
+                        st.write(prompt_text)
+
+                # AI의 응답 표시 (AI 응답이 그 뒤에)
+                if i < len(llama_responses):
+                    response = llama_responses[i]
+                    with st.chat_message("ai", avatar="./assets/meta.png"):
+                        st.write(response)
+
+        else:
+            st.write("대화 내역이 없습니다.")
+
+        # 응답 시간 출력
         if st.session_state["response_times"]["llama"]:
             st.write(
                 f"응답 시간: {sum(st.session_state['response_times']['llama']):.2f} 초"
@@ -451,15 +540,38 @@ with llama_as_tab:
             "해당 AI 모델은 비활성화되었습니다. 설정 탭에서 활성화 할 수 있습니다."
         )
 
+
 # 탭: Qwen
 with qwen_as_tab:
     if "Qwen" in st.session_state["ai_display_selection"]:
         st.title("💬 Qwen: Qwen2.5-72B-Instruct-Turbo")
-        for response in st.session_state["qwen_responses"]:
-            with st.chat_message("user"):
-                st.write(prompt)
-            with st.chat_message("ai", avatar="./assets/qwen.png"):
-                st.write(response)
+
+        # 'prompt_history'와 'qwen_responses'가 존재하는지 확인
+        if (
+            "prompt_history" in st.session_state
+            and "qwen_responses" in st.session_state
+        ):
+            prompt_history = st.session_state["prompt_history"]
+            qwen_responses = st.session_state["qwen_responses"]
+
+            # 대화 기록을 순차적으로 표시
+            for i in range(len(prompt_history)):
+                # 유저의 프롬프트 표시 (유저 메시지가 먼저)
+                prompt_text = prompt_history[i]
+                if prompt_text and not isinstance(prompt_text, dict):
+                    with st.chat_message("user"):
+                        st.write(prompt_text)
+
+                # AI의 응답 표시 (AI 응답이 그 뒤에)
+                if i < len(qwen_responses):
+                    response = qwen_responses[i]
+                    with st.chat_message("ai", avatar="./assets/qwen.png"):
+                        st.write(response)
+
+        else:
+            st.write("대화 내역이 없습니다.")
+
+        # 응답 시간 출력
         if st.session_state["response_times"]["qwen"]:
             st.write(
                 f"응답 시간: {sum(st.session_state['response_times']['qwen']):.2f} 초"
@@ -469,6 +581,7 @@ with qwen_as_tab:
         st.write(
             "해당 AI 모델은 비활성화되었습니다. 설정 탭에서 활성화 할 수 있습니다."
         )
+
 
 # 'prompt_history'가 세션에 없으면 초기화
 if "prompt_history" not in st.session_state:
