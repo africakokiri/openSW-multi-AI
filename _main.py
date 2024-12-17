@@ -9,6 +9,46 @@ from openai_gpt import gpt_prompt
 from google_gemini import gemini_prompt
 from anthropic_claude import claude_prompt
 
+#응답요약기능 관련 라이브러리 및 WordCloud 생성 함수 - 종현 추가
+from transformers import pipeline
+from wordcloud import WordCloud
+import matplotlib.pyplot as plt
+from io import BytesIO
+import base64
+
+# 요약 모델 초기화
+summarizer = pipeline("summarization")
+
+def summarize_text(text, max_length=60, min_length=25):
+    """텍스트를 요약하는 함수"""
+    if not text or len(text.strip()) == 0:
+        return "요약할 내용이 없습니다."
+    summary = summarizer(text, max_length=max_length, min_length=min_length, do_sample=False)
+    return summary[0]["summary_text"]
+
+def generate_wordcloud(text):
+    """텍스트 기반으로 WordCloud를 생성하는 함수"""
+    if not text or len(text.strip()) == 0:
+        return None
+
+    wordcloud = WordCloud(
+        width=800,
+        height=400,
+        background_color="white",
+        colormap="viridis",
+        max_words=100
+    ).generate(text)
+
+    image_stream = BytesIO()
+    plt.figure(figsize=(10, 5))
+    plt.imshow(wordcloud, interpolation="bilinear")
+    plt.axis("off")
+    plt.tight_layout(pad=0)
+    plt.savefig(image_stream, format="png")
+    plt.close()
+    image_stream.seek(0)
+    return base64.b64encode(image_stream.getvalue()).decode("utf-8")
+
 # 페이지 설정
 st.set_page_config(layout="wide")
 
@@ -207,12 +247,13 @@ if prompt:
         elif ai_response["name"] == "Claude":
             st.session_state["claude_responses"].append(ai_response["response"])
 
-# 탭 구성
+# 탭 구성 / 응답 요약, Wordcloud 탭 추가 - 종현 추가
 (
     All,
     records_as_tab,
     settings_as_tab,
 ) = st.tabs(["메인 페이지", "로그", "설정"])
+
 
 
 # 탭: Settings
@@ -349,3 +390,49 @@ if prompt:
 
 # 로컬 스토리지에 저장
 set_local_storage("prompt_history", st.session_state["prompt_history"])
+
+
+
+###############종현기능추가##
+
+# 탭: 응답 요약
+with summarization_tab:
+    st.title("📄 응답 요약")
+    if prompt:
+        st.write("**입력된 프롬프트:**")
+        st.info(prompt)
+
+        # 각 AI 응답 요약
+        summaries = [
+            summarize_text(response) for response in [
+                st.session_state["gpt_responses"][-1] if st.session_state["gpt_responses"] else "",
+                st.session_state["gemini_responses"][-1] if st.session_state["gemini_responses"] else "",
+                st.session_state["claude_responses"][-1] if st.session_state["claude_responses"] else "",
+                st.session_state["llama_responses"][-1] if st.session_state["llama_responses"] else "",
+                st.session_state["qwen_responses"][-1] if st.session_state["qwen_responses"] else ""
+            ]
+        ]
+
+        ai_models = ["ChatGPT", "Gemini", "Claude", "Llama", "Qwen"]
+        for model, summary in zip(ai_models, summaries):
+            st.subheader(f"{model} 요약:")
+            st.write(summary)
+
+    else:
+        st.write("프롬프트를 입력한 후 요약 결과를 확인하세요.")
+
+# 탭: WordCloud
+with wordcloud_tab:
+    st.title("☁️ WordCloud")
+    if prompt:
+        st.write("**입력된 프롬프트:**")
+        st.info(prompt)
+
+        wordcloud_image = generate_wordcloud(prompt)
+
+        if wordcloud_image:
+            st.image(f"data:image/png;base64,{wordcloud_image}", use_column_width=True)
+        else:
+            st.write("WordCloud를 생성할 내용이 없습니다.")
+    else:
+        st.write("프롬프트를 입력한 후 WordCloud를 확인하세요.")

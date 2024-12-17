@@ -114,3 +114,6 @@ wheel==0.44.0
 wordcloud==1.9.4
 wrapt==1.17.0
 yarl==1.18.3
+transformers==4.30.2
+wordcloud==1.9.2
+matplotlib==3.8.2
