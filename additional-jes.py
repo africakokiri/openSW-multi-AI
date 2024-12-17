@@ -5,11 +5,10 @@ async def fetch_all_responses_with_time(prompt):
         fetch_gemini_response(prompt),
         fetch_claude_response(prompt),
         fetch_llama_response(prompt),
-        fetch_qwen_response(prompt),
     )
 
     # AI 이름 리스트
-    ai_names = ["ChatGPT", "Gemini", "Claude", "Llama", "Qwen"]
+    ai_names = ["ChatGPT", "Gemini", "Claude", "Llama"]
 
     # 응답과 시간을 묶어 리스트로 반환
     return [
@@ -48,5 +47,3 @@ if prompt:
             st.session_state["claude_responses"].append(ai_response["response"])
         elif ai_response["name"] == "Llama":
             st.session_state["llama_responses"].append(ai_response["response"])
-        elif ai_response["name"] == "Qwen":
-            st.session_state["qwen_responses"].append(ai_response["response"])
