@@ -1,7 +1,7 @@
 import asyncio
 import time
 import streamlit as st
-from streamlit_gsheets import GSheetsConnection
+import pandas as pd
 
 from streamlit_local_storage import LocalStorage
 
@@ -79,7 +79,10 @@ def get_local_storage():
 def set_local_storage(key, value):
     if value:
         prompts = get_local_storage()
-        prompts.append(value)
+        if isinstance(value, list) and len(value) > 0:
+            prompts.append(value[-1])  # 가장 최근의 항목만 추가
+        else:
+            prompts.append(value)
         localS.setItem(key, prompts)
 
 
@@ -290,8 +293,21 @@ with settings_as_tab:
 
 # 탭: 기록
 with records_as_tab:
-    stored_prompts = localS.getItem("prompt_history")
-    st.markdown("#### 로그를 확인하시려면 새로고침 해 주세요!")
+    st.markdown(
+        """
+    <style>
+        html, body {
+            scroll-behavior: auto !important;
+        }
+    </style>
+        """,
+        unsafe_allow_html=True,
+    )
+
+    stored_prompts = get_local_storage()
+
+    if prompt:
+        st.button("로그 새로고침")
 
     def delete_prompt_history():
         localS.deleteItem("prompt_history")
@@ -307,19 +323,21 @@ with records_as_tab:
             parsed = eval(response)  # ['응답 문자열'] -> 리스트로 변환
             return parsed[0] if parsed else ""  # 첫 번째 요소 반환
 
-        for result in stored_prompts:
-            with st.chat_message("user"):
-                if result[1]["prompt"]:
-                    st.write(result[1]["prompt"])
-            with st.chat_message("ai", avatar="./assets/gpt.svg"):
-                st.markdown(f"{clean_response(result[1]['gpt_response'])}")
-                st.divider()
-            with st.chat_message("ai", avatar="./assets/gemini.svg"):
-                st.markdown(f"{clean_response(result[1]['gemini_response'])}")
-                st.divider()
-            with st.chat_message("ai", avatar="./assets/claude.svg"):
-                st.markdown(f"{clean_response(result[1]['claude_response'])}")
-                st.divider()
+        # stored_prompts를 역순으로 처리하여 최신 프롬프트가 맨 위에 오도록 함
+        for result in reversed(stored_prompts):  # 역순으로 처리
+            with st.expander(result["prompt"]):
+                if result["prompt"]:
+                    with st.chat_message("user"):
+                        st.write(result["prompt"])
+                with st.chat_message("ai", avatar="./assets/gpt.svg"):
+                    st.markdown(f"{clean_response(result['gpt_response'])}")
+                    st.divider()
+                with st.chat_message("ai", avatar="./assets/gemini.svg"):
+                    st.markdown(f"{clean_response(result['gemini_response'])}")
+                    st.divider()
+                with st.chat_message("ai", avatar="./assets/claude.svg"):
+                    st.markdown(f"{clean_response(result['claude_response'])}")
+                    st.divider()
 
 
 # 탭: 전체
@@ -398,8 +416,10 @@ if prompt:
         }
     )
 
-# 로컬 스토리지에 저장
-set_local_storage("prompt_history", st.session_state["prompt_history"])
+    set_local_storage("prompt_history", st.session_state["prompt_history"])
+
+# # 로컬 스토리지에 저장
+# set_local_storage("prompt_history", st.session_state["prompt_history"])
 
 
 ###############종현기능추가##
