@@ -10,12 +10,45 @@ from anthropic_claude import claude_prompt
 from meta_llama import llama_prompt
 from qwen_qwen import qwen_prompt
 
-#응답요약기능에 사용되는 라이브러리
+#응답요약기능 관련 라이브러리 및 WordCloud 생성 함수 - 종현 추가
 from transformers import pipeline
 from wordcloud import WordCloud
 import matplotlib.pyplot as plt
 from io import BytesIO
 import base64
+
+# 요약 모델 초기화
+summarizer = pipeline("summarization")
+
+def summarize_text(text, max_length=60, min_length=25):
+    """텍스트를 요약하는 함수"""
+    if not text or len(text.strip()) == 0:
+        return "요약할 내용이 없습니다."
+    summary = summarizer(text, max_length=max_length, min_length=min_length, do_sample=False)
+    return summary[0]["summary_text"]
+
+def generate_wordcloud(text):
+    """텍스트 기반으로 WordCloud를 생성하는 함수"""
+    if not text or len(text.strip()) == 0:
+        return None
+
+    wordcloud = WordCloud(
+        width=800,
+        height=400,
+        background_color="white",
+        colormap="viridis",
+        max_words=100
+    ).generate(text)
+
+    image_stream = BytesIO()
+    plt.figure(figsize=(10, 5))
+    plt.imshow(wordcloud, interpolation="bilinear")
+    plt.axis("off")
+    plt.tight_layout(pad=0)
+    plt.savefig(image_stream, format="png")
+    plt.close()
+    image_stream.seek(0)
+    return base64.b64encode(image_stream.getvalue()).decode("utf-8")
 
 # 페이지 설정
 st.set_page_config(layout="wide")
@@ -210,7 +243,7 @@ if prompt:
     st.session_state["llama_responses"].append(responses[3])
     st.session_state["qwen_responses"].append(responses[4])
 
-# 탭 구성
+# 탭 구성 / 응답 요약, Wordcloud 탭 추가 - 종현 추가
 (
     All,
     gpt_as_tab,
@@ -220,7 +253,10 @@ if prompt:
     qwen_as_tab,
     records_as_tab,
     settings_as_tab,
-) = st.tabs(["전체", "ChatGPT", "Gemini", "Claude", "Llama", "Qwen", "로그", "요약", "설정"]) #요약탭 추가 - 종현
+    summarization_tab,
+    wordcloud_tab,
+) = st.tabs(["전체", "ChatGPT", "Gemini", "Claude", "Llama", "Qwen", "로그", "설정", "응답 요약", "WordCloud"])
+
 
 
 # 탭: Settings
@@ -613,56 +649,44 @@ set_local_storage("prompt_history", st.session_state["prompt_history"])
 
 ###############종현기능추가##
 
-# 요약 및 WordCloud 함수 정의
-summarizer = pipeline("summarization")
+# 탭: 응답 요약
+with summarization_tab:
+    st.title("📄 응답 요약")
+    if prompt:
+        st.write("**입력된 프롬프트:**")
+        st.info(prompt)
 
-def summarize_text(text, max_length=60, min_length=25):
-    """텍스트 요약"""
-    if not text:
-        return "요약할 내용이 없습니다."
-    summary = summarizer(text, max_length=max_length, min_length=min_length, do_sample=False)
-    return summary[0]['summary_text']
+        # 각 AI 응답 요약
+        summaries = [
+            summarize_text(response) for response in [
+                st.session_state["gpt_responses"][-1] if st.session_state["gpt_responses"] else "",
+                st.session_state["gemini_responses"][-1] if st.session_state["gemini_responses"] else "",
+                st.session_state["claude_responses"][-1] if st.session_state["claude_responses"] else "",
+                st.session_state["llama_responses"][-1] if st.session_state["llama_responses"] else "",
+                st.session_state["qwen_responses"][-1] if st.session_state["qwen_responses"] else ""
+            ]
+        ]
 
-def generate_wordcloud(text):
-    """WordCloud 생성"""
-    if not text:
-        return None
+        ai_models = ["ChatGPT", "Gemini", "Claude", "Llama", "Qwen"]
+        for model, summary in zip(ai_models, summaries):
+            st.subheader(f"{model} 요약:")
+            st.write(summary)
 
-    wordcloud = WordCloud(
-        width=800, height=400, background_color='white', colormap='viridis', max_words=100
-    ).generate(text)
+    else:
+        st.write("프롬프트를 입력한 후 요약 결과를 확인하세요.")
 
-    image_stream = BytesIO()
-    plt.figure(figsize=(10, 5))
-    plt.imshow(wordcloud, interpolation='bilinear')
-    plt.axis('off')
-    plt.tight_layout(pad=0)
-    plt.savefig(image_stream, format='png')
-    plt.close()
-    image_stream.seek(0)
-    return base64.b64encode(image_stream.getvalue()).decode('utf-8')
+# 탭: WordCloud
+with wordcloud_tab:
+    st.title("☁️ WordCloud")
+    if prompt:
+        st.write("**입력된 프롬프트:**")
+        st.info(prompt)
 
-# Streamlit UI
-st.title("AI 응답 요약 및 WordCloud")
+        wordcloud_image = generate_wordcloud(prompt)
 
-# 사용자 입력 프롬프트
-prompt = st.text_area("프롬프트를 입력하세요:")
-
-if prompt:
-    # 요약 및 WordCloud 생성
-    summary = summarize_text(prompt)
-    wordcloud_image = generate_wordcloud(prompt)
-
-    # 탭 구성
-    tab1, tab2 = st.tabs(["📄 요약", "☁️ WordCloud"])
-
-    with tab1:
-        st.header("📄 요약 결과")
-        st.write(summary)
-
-    with tab2:
-        st.header("☁️ WordCloud 결과")
         if wordcloud_image:
             st.image(f"data:image/png;base64,{wordcloud_image}", use_column_width=True)
         else:
             st.write("WordCloud를 생성할 내용이 없습니다.")
+    else:
+        st.write("프롬프트를 입력한 후 WordCloud를 확인하세요.")
