@@ -8,7 +8,6 @@ from openai_gpt import gpt_prompt
 from google_gemini import gemini_prompt
 from anthropic_claude import claude_prompt
 from meta_llama import llama_prompt
-from qwen_qwen import qwen_prompt
 
 # 페이지 설정
 st.set_page_config(layout="wide")
@@ -76,7 +75,6 @@ if "response_times" not in st.session_state:
         "gemini": [],
         "claude": [],
         "llama": [],
-        "qwen": [],
     }
 
 if "prompt_history" not in st.session_state:
@@ -93,9 +91,6 @@ if "claude_responses" not in st.session_state:
 
 if "llama_responses" not in st.session_state:
     st.session_state["llama_responses"] = []
-
-if "qwen_responses" not in st.session_state:
-    st.session_state["qwen_responses"] = []
 
 if "ai_display_selection" not in st.session_state:
     st.session_state["ai_display_selection"] = ["ChatGPT", "Gemini", "Claude"]
@@ -157,19 +152,6 @@ async def fetch_llama_response(prompt):
     return response
 
 
-async def fetch_qwen_response(prompt):
-    if (
-        st.session_state["disable_ai_in_tabs"]
-        and "Qwen" not in st.session_state["ai_display_selection"]
-    ):
-        return ""
-    start_time = time.time()
-    response = await asyncio.to_thread(qwen_prompt, prompt) if prompt else ""
-    end_time = time.time()
-    st.session_state["response_times"]["qwen"].append(end_time - start_time)
-    return response
-
-
 # 비동기 처리 함수
 async def fetch_all_responses(prompt):
     responses = await asyncio.gather(
@@ -177,14 +159,13 @@ async def fetch_all_responses(prompt):
         fetch_gemini_response(prompt),
         fetch_claude_response(prompt),
         fetch_llama_response(prompt),
-        fetch_qwen_response(prompt),
     )
     return responses
 
 
 # 초기 선택 옵션 설정
-options = ["ChatGPT", "Gemini", "Claude", "Llama", "Qwen"]
-default_selection = ["ChatGPT", "Gemini", "Claude"]
+options = ["ChatGPT", "Gemini", "Claude", "Llama"]
+default_selection = ["ChatGPT", "Gemini", "Claude", "Llama"]
 
 # 유저의 새로운 prompt 입력
 prompt = st.chat_input("프롬프트를 입력하세요.")
@@ -201,7 +182,6 @@ if prompt:
     st.session_state["gemini_responses"].append(responses[1])
     st.session_state["claude_responses"].append(responses[2])
     st.session_state["llama_responses"].append(responses[3])
-    st.session_state["qwen_responses"].append(responses[4])
 
 # 탭 구성
 (
@@ -210,10 +190,9 @@ if prompt:
     gemini_as_tab,
     claude_as_tab,
     llama_as_tab,
-    qwen_as_tab,
     records_as_tab,
     settings_as_tab,
-) = st.tabs(["전체", "ChatGPT", "Gemini", "Claude", "Llama", "Qwen", "로그", "설정"])
+) = st.tabs(["전체", "ChatGPT", "Gemini", "Claude", "Llama", "로그", "설정"])
 
 
 # 탭: Settings
@@ -290,15 +269,6 @@ with records_as_tab:
              """,
                     unsafe_allow_html=True,
                 )
-            with st.chat_message("ai", avatar="./assets/qwen.png"):
-                st.markdown(
-                    f"""
-             <p>
-                 {result[1]["qwen_response"].replace("['", "").replace("']", "").replace("\\n", "<br />").replace("`", "")}
-             </p>
-             """,
-                    unsafe_allow_html=True,
-                )
 
 
 # 탭: 전체
@@ -350,13 +320,6 @@ with All:
                 "times": st.session_state["response_times"]["llama"],
                 "avatar": "./assets/meta.png",
                 "model": "Meta: Llama-3.2-90B-Vision-Instruct-Turbo",
-            },
-            {
-                "name": "Qwen",
-                "responses": st.session_state["qwen_responses"],
-                "times": st.session_state["response_times"]["qwen"],
-                "avatar": "./assets/qwen.png",
-                "model": "Qwen: Qwen2.5-72B-Instruct-Turbo",
             },
         ]
 
@@ -541,48 +504,6 @@ with llama_as_tab:
         )
 
 
-# 탭: Qwen
-with qwen_as_tab:
-    if "Qwen" in st.session_state["ai_display_selection"]:
-        st.title("💬 Qwen: Qwen2.5-72B-Instruct-Turbo")
-
-        # 'prompt_history'와 'qwen_responses'가 존재하는지 확인
-        if (
-            "prompt_history" in st.session_state
-            and "qwen_responses" in st.session_state
-        ):
-            prompt_history = st.session_state["prompt_history"]
-            qwen_responses = st.session_state["qwen_responses"]
-
-            # 대화 기록을 순차적으로 표시
-            for i in range(len(prompt_history)):
-                # 유저의 프롬프트 표시 (유저 메시지가 먼저)
-                prompt_text = prompt_history[i]
-                if prompt_text and not isinstance(prompt_text, dict):
-                    with st.chat_message("user"):
-                        st.write(prompt_text)
-
-                # AI의 응답 표시 (AI 응답이 그 뒤에)
-                if i < len(qwen_responses):
-                    response = qwen_responses[i]
-                    with st.chat_message("ai", avatar="./assets/qwen.png"):
-                        st.write(response)
-
-        else:
-            st.write("대화 내역이 없습니다.")
-
-        # 응답 시간 출력
-        if st.session_state["response_times"]["qwen"]:
-            st.write(
-                f"응답 시간: {sum(st.session_state['response_times']['qwen']):.2f} 초"
-            )
-    else:
-        st.markdown("# ~~💬 Qwen: Qwen2.5-72B-Instruct-Turbo~~")
-        st.write(
-            "해당 AI 모델은 비활성화되었습니다. 설정 탭에서 활성화 할 수 있습니다."
-        )
-
-
 # 'prompt_history'가 세션에 없으면 초기화
 if "prompt_history" not in st.session_state:
     st.session_state["prompt_history"] = []
@@ -595,7 +516,6 @@ if prompt:
             "gemini_response": str(st.session_state.get("gemini_responses", "")),
             "claude_response": str(st.session_state.get("claude_responses", "")),
             "llama_response": str(st.session_state.get("llama_responses", "")),
-            "qwen_response": str(st.session_state.get("qwen_responses", "")),
         }
     )
 
