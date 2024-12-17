@@ -53,7 +53,8 @@ st.markdown(
                 border-radius: 8px;
                 padding-right: 24px;
                 min-width: 400px;
-                max-width: 400px;
+                resize: horizontal;
+                overflow: auto;
             }
 
                div.stColumn:nth-child(2) > div:nth-child(1) > div:nth-child(1) > div:nth-child(1) > .stElementContainer {
@@ -62,6 +63,15 @@ st.markdown(
 
             .st-emotion-cache-1khdzpl > div:nth-child(1) .stColumn {
                 background-color: black;
+            }
+            
+            div[data-testid=stToast] {
+                background-color: #000000;
+                color: #FFFFFF;
+            }
+             
+            [data-testid=toastContainer] [data-testid=stMarkdownContainer] > p {
+                color: #FFFFFF;
             }
         </style>
     """,
@@ -176,13 +186,10 @@ if prompt:
     # 가장 빠른 응답 선택
     shortest_response = min(ai_responses_with_time, key=lambda x: x["time"])
 
-    # 선택된 응답 출력
-    st.markdown(f"### 가장 빠른 응답: {shortest_response['name']}")
-    st.markdown(f"응답 내용:\n{shortest_response['response']}")
-    st.markdown(f"응답 시간: {shortest_response['time']:.2f} 초")
-
-    # 가장 빠른 응답을 localStorage에 저장
-    localS.setItem("best_speed", shortest_response["name"], "strr")
+    if prompt and shortest_response:
+        st.toast(
+            f"가장 응답이 빠른 AI: {shortest_response["name"]}, 응답 시간: {shortest_response['time']:.2f} 초"
+        )
 
     # 각 AI의 응답을 session_state에 기록
     for ai_response in ai_responses_with_time:
@@ -192,7 +199,6 @@ if prompt:
             st.session_state["gemini_responses"].append(ai_response["response"])
         elif ai_response["name"] == "Claude":
             st.session_state["claude_responses"].append(ai_response["response"])
-
 
 # 탭 구성
 (
