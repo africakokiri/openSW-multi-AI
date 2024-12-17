@@ -1,7 +1,7 @@
 import asyncio
 import time
-import json
 import streamlit as st
+from streamlit_gsheets import GSheetsConnection
 
 from streamlit_local_storage import LocalStorage
 
@@ -15,6 +15,10 @@ from wordcloud import WordCloud
 import matplotlib.pyplot as plt
 from io import BytesIO
 import base64
+
+import streamlit as st
+import time
+
 
 # 요약 모델 초기화
 summarizer = pipeline("summarization")
