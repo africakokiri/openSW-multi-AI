@@ -1,5 +1,6 @@
 import asyncio
 import time
+import json
 import streamlit as st
 
 from streamlit_local_storage import LocalStorage
@@ -7,7 +8,6 @@ from streamlit_local_storage import LocalStorage
 from openai_gpt import gpt_prompt
 from google_gemini import gemini_prompt
 from anthropic_claude import claude_prompt
-from meta_llama import llama_prompt
 
 # 페이지 설정
 st.set_page_config(layout="wide")
@@ -68,13 +68,13 @@ st.markdown(
     unsafe_allow_html=True,
 )
 
+
 # 세션 상태 초기화
 if "response_times" not in st.session_state:
     st.session_state["response_times"] = {
         "gpt": [],
         "gemini": [],
         "claude": [],
-        "llama": [],
     }
 
 if "prompt_history" not in st.session_state:
@@ -88,9 +88,6 @@ if "gemini_responses" not in st.session_state:
 
 if "claude_responses" not in st.session_state:
     st.session_state["claude_responses"] = []
-
-if "llama_responses" not in st.session_state:
-    st.session_state["llama_responses"] = []
 
 if "ai_display_selection" not in st.session_state:
     st.session_state["ai_display_selection"] = ["ChatGPT", "Gemini", "Claude"]
@@ -139,49 +136,63 @@ async def fetch_claude_response(prompt):
     return response
 
 
-async def fetch_llama_response(prompt):
-    if (
-        st.session_state["disable_ai_in_tabs"]
-        and "Llama" not in st.session_state["ai_display_selection"]
-    ):
-        return ""
-    start_time = time.time()
-    response = await asyncio.to_thread(llama_prompt, prompt) if prompt else ""
-    end_time = time.time()
-    st.session_state["response_times"]["llama"].append(end_time - start_time)
-    return response
-
-
-# 비동기 처리 함수
-async def fetch_all_responses(prompt):
+# 비동기 처리 함수: 각 AI의 응답을 반환할 때 시간을 포함한 튜플로 반환
+async def fetch_all_responses_with_time(prompt):
     responses = await asyncio.gather(
         fetch_gpt_response(prompt),
         fetch_gemini_response(prompt),
         fetch_claude_response(prompt),
-        fetch_llama_response(prompt),
     )
-    return responses
+
+    # AI 이름 리스트
+    ai_names = ["GPT", "Gemini", "Claude"]
+
+    # 응답과 시간을 묶어 리스트로 반환
+    return [
+        {
+            "name": ai_names[i],
+            "response": responses[i],
+            "time": st.session_state["response_times"][ai_names[i].lower()][-1],
+        }
+        for i in range(len(ai_names))
+    ]
 
 
 # 초기 선택 옵션 설정
-options = ["ChatGPT", "Gemini", "Claude", "Llama"]
-default_selection = ["ChatGPT", "Gemini", "Claude", "Llama"]
+options = ["ChatGPT", "Gemini", "Claude"]
+default_selection = ["ChatGPT", "Gemini", "Claude"]
 
 # 유저의 새로운 prompt 입력
 prompt = st.chat_input("프롬프트를 입력하세요.")
 
+# 새로운 Prompt가 입력되었을 때 가장 짧은 응답 출력
 if prompt:
     # 기존 prompt 기록에 새로운 prompt 추가
     st.session_state["prompt_history"].append(prompt)
 
-    # 각 AI의 응답을 비동기적으로 받아오기
-    responses = asyncio.run(fetch_all_responses(prompt))
+    # 각 AI의 응답과 시간을 받아오기
+    ai_responses_with_time = asyncio.run(fetch_all_responses_with_time(prompt))
+
+    # 가장 빠른 응답 선택
+    shortest_response = min(ai_responses_with_time, key=lambda x: x["time"])
+
+    # 선택된 응답 출력
+    st.markdown(f"### 가장 빠른 응답: {shortest_response['name']}")
+    st.markdown(f"응답 내용:\n{shortest_response['response']}")
+    st.markdown(f"응답 시간: {shortest_response['time']:.2f} 초")
+
+    # 가장 빠른 응답을 localStorage에 저장
+    localS.setItem("best_speed", shortest_response["name"], "strr")
 
     # 각 AI의 응답을 session_state에 기록
-    st.session_state["gpt_responses"].append(responses[0])
-    st.session_state["gemini_responses"].append(responses[1])
-    st.session_state["claude_responses"].append(responses[2])
-    st.session_state["llama_responses"].append(responses[3])
+    for ai_response in ai_responses_with_time:
+        if ai_response["name"] == "GPT":
+            st.session_state["gpt_responses"].append(ai_response["response"])
+        elif ai_response["name"] == "Gemini":
+            st.session_state["gemini_responses"].append(ai_response["response"])
+        elif ai_response["name"] == "Claude":
+            st.session_state["claude_responses"].append(ai_response["response"])
+
 
 # 탭 구성
 (
@@ -189,10 +200,9 @@ if prompt:
     gpt_as_tab,
     gemini_as_tab,
     claude_as_tab,
-    llama_as_tab,
     records_as_tab,
     settings_as_tab,
-) = st.tabs(["전체", "ChatGPT", "Gemini", "Claude", "Llama", "로그", "설정"])
+) = st.tabs(["전체", "ChatGPT", "Gemini", "Claude", "로그", "설정"])
 
 
 # 탭: Settings
@@ -229,46 +239,26 @@ with records_as_tab:
         st.button("로그 전체 삭제", type="primary", on_click=delete_prompt_history)
 
     if stored_prompts:
+
+        # 데이터 처리 함수
+        def clean_response(response):
+            # 문자열로 인코딩된 리스트를 파싱하고 첫 번째 요소를 반환
+            parsed = eval(response)  # ['응답 문자열'] -> 리스트로 변환
+            return parsed[0] if parsed else ""  # 첫 번째 요소 반환
+
         for result in stored_prompts:
             with st.chat_message("user"):
                 if result[1]["prompt"]:
                     st.write(result[1]["prompt"])
             with st.chat_message("ai", avatar="./assets/gpt.svg"):
-                st.markdown(
-                    f"""
-             <p>
-                 {result[1]["gpt_response"].replace("['", "").replace("']", "").replace("\\n", "<br />").replace("`", "")}
-             </p>
-             """,
-                    unsafe_allow_html=True,
-                )
+                st.markdown(f"{clean_response(result[1]['gpt_response'])}")
+                st.divider()
             with st.chat_message("ai", avatar="./assets/gemini.svg"):
-                st.markdown(
-                    f"""
-             <p>
-                 {result[1]["gemini_response"].replace("['", "").replace("']", "").replace("\\n", "<br />").replace("`", "")}
-             </p>
-             """,
-                    unsafe_allow_html=True,
-                )
+                st.markdown(f"{clean_response(result[1]['gemini_response'])}")
+                st.divider()
             with st.chat_message("ai", avatar="./assets/claude.svg"):
-                st.markdown(
-                    f"""
-             <p>
-                 {result[1]["claude_response"].replace("['", "").replace("']", "").replace("\\n", "<br />").strip("[]").strip('""').replace("`", "")}
-             </p>
-             """,
-                    unsafe_allow_html=True,
-                )
-            with st.chat_message("ai", avatar="./assets/meta.png"):
-                st.markdown(
-                    f"""
-             <p>
-                 {result[1]["llama_response"].replace("['", "").replace("']", "").replace("\\n", "<br />").replace("`", "")}
-             </p>
-             """,
-                    unsafe_allow_html=True,
-                )
+                st.markdown(f"{clean_response(result[1]['claude_response'])}")
+                st.divider()
 
 
 # 탭: 전체
@@ -313,13 +303,6 @@ with All:
                 "times": st.session_state["response_times"]["claude"],
                 "avatar": "./assets/claude.svg",
                 "model": "Anthropic: Claude-3.5-Sonnet",
-            },
-            {
-                "name": "Llama",
-                "responses": st.session_state["llama_responses"],
-                "times": st.session_state["response_times"]["llama"],
-                "avatar": "./assets/meta.png",
-                "model": "Meta: Llama-3.2-90B-Vision-Instruct-Turbo",
             },
         ]
 
@@ -462,48 +445,6 @@ with claude_as_tab:
         )
 
 
-# 탭: Llama
-with llama_as_tab:
-    if "Llama" in st.session_state["ai_display_selection"]:
-        st.title("💬 Meta: Llama-3.2-90B-Vision-Instruct-Turbo")
-
-        # 'prompt_history'와 'llama_responses'가 존재하는지 확인
-        if (
-            "prompt_history" in st.session_state
-            and "llama_responses" in st.session_state
-        ):
-            prompt_history = st.session_state["prompt_history"]
-            llama_responses = st.session_state["llama_responses"]
-
-            # 대화 기록을 순차적으로 표시
-            for i in range(len(prompt_history)):
-                # 유저의 프롬프트 표시 (유저 메시지가 먼저)
-                prompt_text = prompt_history[i]
-                if prompt_text and not isinstance(prompt_text, dict):
-                    with st.chat_message("user"):
-                        st.write(prompt_text)
-
-                # AI의 응답 표시 (AI 응답이 그 뒤에)
-                if i < len(llama_responses):
-                    response = llama_responses[i]
-                    with st.chat_message("ai", avatar="./assets/meta.png"):
-                        st.write(response)
-
-        else:
-            st.write("대화 내역이 없습니다.")
-
-        # 응답 시간 출력
-        if st.session_state["response_times"]["llama"]:
-            st.write(
-                f"응답 시간: {sum(st.session_state['response_times']['llama']):.2f} 초"
-            )
-    else:
-        st.markdown("# ~~💬 Meta: Llama-3.2-90B-Vision-Instruct-Turbo~~")
-        st.write(
-            "해당 AI 모델은 비활성화되었습니다. 설정 탭에서 활성화 할 수 있습니다."
-        )
-
-
 # 'prompt_history'가 세션에 없으면 초기화
 if "prompt_history" not in st.session_state:
     st.session_state["prompt_history"] = []
@@ -515,7 +456,6 @@ if prompt:
             "gpt_response": str(st.session_state.get("gpt_responses", "")),
             "gemini_response": str(st.session_state.get("gemini_responses", "")),
             "claude_response": str(st.session_state.get("claude_responses", "")),
-            "llama_response": str(st.session_state.get("llama_responses", "")),
         }
     )
 
