@@ -447,7 +447,9 @@ with wordcloud_tab:
         wordcloud_image = generate_wordcloud(prompt)
 
         if wordcloud_image:
-            st.image(f"data:image/png;base64,{wordcloud_image}", use_column_width=True)
+            st.image(
+                f"data:image/png;base64,{wordcloud_image}", use_container_width=True
+            )
         else:
             st.write("WordCloud를 생성할 내용이 없습니다.")
     else:
