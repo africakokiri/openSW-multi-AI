@@ -9,7 +9,7 @@ from openai_gpt import gpt_prompt
 from google_gemini import gemini_prompt
 from anthropic_claude import claude_prompt
 
-#응답요약기능 관련 라이브러리 및 WordCloud 생성 함수 - 종현 추가
+# 응답요약기능 관련 라이브러리 및 WordCloud 생성 함수 - 종현 추가
 from transformers import pipeline
 from wordcloud import WordCloud
 import matplotlib.pyplot as plt
@@ -19,12 +19,16 @@ import base64
 # 요약 모델 초기화
 summarizer = pipeline("summarization")
 
+
 def summarize_text(text, max_length=60, min_length=25):
     """텍스트를 요약하는 함수"""
     if not text or len(text.strip()) == 0:
         return "요약할 내용이 없습니다."
-    summary = summarizer(text, max_length=max_length, min_length=min_length, do_sample=False)
+    summary = summarizer(
+        text, max_length=max_length, min_length=min_length, do_sample=False
+    )
     return summary[0]["summary_text"]
+
 
 def generate_wordcloud(text):
     """텍스트 기반으로 WordCloud를 생성하는 함수"""
@@ -36,7 +40,7 @@ def generate_wordcloud(text):
         height=400,
         background_color="white",
         colormap="viridis",
-        max_words=100
+        max_words=100,
     ).generate(text)
 
     image_stream = BytesIO()
@@ -48,6 +52,7 @@ def generate_wordcloud(text):
     plt.close()
     image_stream.seek(0)
     return base64.b64encode(image_stream.getvalue()).decode("utf-8")
+
 
 # 페이지 설정
 st.set_page_config(layout="wide")
@@ -251,9 +256,10 @@ if prompt:
 (
     All,
     records_as_tab,
+    summarization_tab,
+    wordcloud_tab,
     settings_as_tab,
-) = st.tabs(["메인 페이지", "로그", "설정"])
-
+) = st.tabs(["메인 페이지", "로그", "응답 요약", "WordCloud", "설정"])
 
 
 # 탭: Settings
@@ -392,7 +398,6 @@ if prompt:
 set_local_storage("prompt_history", st.session_state["prompt_history"])
 
 
-
 ###############종현기능추가##
 
 # 탭: 응답 요약
@@ -404,16 +409,27 @@ with summarization_tab:
 
         # 각 AI 응답 요약
         summaries = [
-            summarize_text(response) for response in [
-                st.session_state["gpt_responses"][-1] if st.session_state["gpt_responses"] else "",
-                st.session_state["gemini_responses"][-1] if st.session_state["gemini_responses"] else "",
-                st.session_state["claude_responses"][-1] if st.session_state["claude_responses"] else "",
-                st.session_state["llama_responses"][-1] if st.session_state["llama_responses"] else "",
-                st.session_state["qwen_responses"][-1] if st.session_state["qwen_responses"] else ""
+            summarize_text(response)
+            for response in [
+                (
+                    st.session_state["gpt_responses"][-1]
+                    if st.session_state["gpt_responses"]
+                    else ""
+                ),
+                (
+                    st.session_state["gemini_responses"][-1]
+                    if st.session_state["gemini_responses"]
+                    else ""
+                ),
+                (
+                    st.session_state["claude_responses"][-1]
+                    if st.session_state["claude_responses"]
+                    else ""
+                ),
             ]
         ]
 
-        ai_models = ["ChatGPT", "Gemini", "Claude", "Llama", "Qwen"]
+        ai_models = ["ChatGPT", "Gemini", "Claude"]
         for model, summary in zip(ai_models, summaries):
             st.subheader(f"{model} 요약:")
             st.write(summary)
