@@ -80,3 +80,6 @@ uritemplate==4.1.1
 urllib3==2.2.3
 wheel==0.44.0
 yarl==1.18.3
+transformers==4.30.2
+wordcloud==1.9.2
+matplotlib==3.8.2
