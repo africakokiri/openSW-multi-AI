@@ -2,3 +2,4 @@ __pycache__
 .cosmos
 .env.local
 .DS_Store
+.env
