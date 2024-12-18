@@ -1,7 +1,6 @@
 import asyncio
 import time
 import streamlit as st
-import pandas as pd
 
 from streamlit_local_storage import LocalStorage
 
@@ -261,10 +260,8 @@ if prompt:
 (
     All,
     records_as_tab,
-    summarization_tab,
-    wordcloud_tab,
     settings_as_tab,
-) = st.tabs(["메인 페이지", "로그", "응답 요약", "WordCloud", "설정"])
+) = st.tabs(["메인 페이지", "로그", "설정"])
 
 
 # 탭: Settings
@@ -322,7 +319,7 @@ with records_as_tab:
             return parsed[0] if parsed else ""  # 첫 번째 요소 반환
 
         # stored_prompts를 역순으로 처리하여 최신 프롬프트가 맨 위에 오도록 함
-        for result in reversed(stored_prompts):  # 역순으로 처리
+        for result in stored_prompts:  # 역순으로 처리
             with st.expander(result["prompt"]):
                 if result["prompt"]:
                     with st.chat_message("user"):
