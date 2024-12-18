@@ -20,18 +20,30 @@ import base64
 # 요약 모델 초기화
 summarizer = pipeline("summarization")
 
-def summarize_text(text, max_length=60, min_length=25):
-    """텍스트를 요약하는 함수"""
+# 비동기 요약 함수
+async def summarize_text_async(text, max_length=60, min_length=25):
+    """비동기식으로 텍스트 요약"""
     if not text or len(text.strip()) == 0:
         return "요약할 내용이 없습니다."
-    summary = summarizer(text, max_length=max_length, min_length=min_length, do_sample=False)
-    return summary[0]["summary_text"]
+    try:
+        return await asyncio.to_thread(
+            lambda: summarizer(text, max_length=max_length, min_length=min_length, do_sample=False)[0]["summary_text"]
+        )
+    except Exception as e:
+        return f"요약 중 오류 발생: {str(e)}"
 
-def generate_wordcloud(text):
-    """텍스트 기반으로 WordCloud를 생성하는 함수"""
+# 비동기 WordCloud 생성 함수
+async def generate_wordcloud_async(text):
+    """비동기식으로 WordCloud 생성"""
     if not text or len(text.strip()) == 0:
         return None
+    try:
+        return await asyncio.to_thread(lambda: _generate_wordcloud_image(text))
+    except Exception as e:
+        return None
 
+def _generate_wordcloud_image(text):
+    """WordCloud 이미지 생성 로직 (비동기 호출을 위해 별도 함수로 분리)"""
     wordcloud = WordCloud(
         width=800,
         height=400,
@@ -49,6 +61,8 @@ def generate_wordcloud(text):
     plt.close()
     image_stream.seek(0)
     return base64.b64encode(image_stream.getvalue()).decode("utf-8")
+
+
 
 # 페이지 설정
 st.set_page_config(layout="wide")
@@ -656,24 +670,18 @@ with summarization_tab:
         st.write("**입력된 프롬프트:**")
         st.info(prompt)
 
-        # 각 AI 응답 요약
-        summaries = [
-            summarize_text(response) for response in [
-                st.session_state["gpt_responses"][-1] if st.session_state["gpt_responses"] else "",
-                st.session_state["gemini_responses"][-1] if st.session_state["gemini_responses"] else "",
-                st.session_state["claude_responses"][-1] if st.session_state["claude_responses"] else "",
-                st.session_state["llama_responses"][-1] if st.session_state["llama_responses"] else "",
-                st.session_state["qwen_responses"][-1] if st.session_state["qwen_responses"] else ""
-            ]
-        ]
+        # 비동기 요약 실행
+        summaries = asyncio.run(asyncio.gather(
+            summarize_text_async(prompt),
+            summarize_text_async(st.session_state["gpt_responses"][-1] if st.session_state["gpt_responses"] else ""),
+            summarize_text_async(st.session_state["gemini_responses"][-1] if st.session_state["gemini_responses"] else "")
+        ))
 
-        ai_models = ["ChatGPT", "Gemini", "Claude", "Llama", "Qwen"]
+        # 요약 결과 출력
+        ai_models = ["입력 프롬프트", "ChatGPT 응답", "Gemini 응답"]
         for model, summary in zip(ai_models, summaries):
             st.subheader(f"{model} 요약:")
             st.write(summary)
-
-    else:
-        st.write("프롬프트를 입력한 후 요약 결과를 확인하세요.")
 
 # 탭: WordCloud
 with wordcloud_tab:
@@ -682,11 +690,11 @@ with wordcloud_tab:
         st.write("**입력된 프롬프트:**")
         st.info(prompt)
 
-        wordcloud_image = generate_wordcloud(prompt)
-
+        # 비동기 WordCloud 실행
+        wordcloud_image = asyncio.run(generate_wordcloud_async(prompt))
         if wordcloud_image:
             st.image(f"data:image/png;base64,{wordcloud_image}", use_column_width=True)
         else:
-            st.write("WordCloud를 생성할 내용이 없습니다.")
+            st.write("WordCloud 생성 중 오류가 발생했습니다.")
     else:
         st.write("프롬프트를 입력한 후 WordCloud를 확인하세요.")
