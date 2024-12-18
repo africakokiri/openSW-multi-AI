@@ -16,9 +16,6 @@ import matplotlib.pyplot as plt
 from io import BytesIO
 import base64
 
-import streamlit as st
-import time
-
 
 # 요약 모델 초기화
 summarizer = pipeline("summarization")
@@ -121,8 +118,9 @@ st.markdown(
                 background-color: #000000;
                 color: #FFFFFF;
                 position: absolute;
-                top: 0px;
-                left: 0px;
+                top: 0;
+                left: 50%;
+                transform: translateX(-50%);
             }
              
             [data-testid=toastContainer] [data-testid=stMarkdownContainer] > p {
@@ -418,63 +416,60 @@ if prompt:
 
     set_local_storage("prompt_history", st.session_state["prompt_history"])
 
-# # 로컬 스토리지에 저장
-# set_local_storage("prompt_history", st.session_state["prompt_history"])
-
 
 ###############종현기능추가##
 
-# 탭: 응답 요약
-with summarization_tab:
-    st.title("📄 응답 요약")
-    if prompt:
-        st.write("**입력된 프롬프트:**")
-        st.info(prompt)
+# # 탭: 응답 요약
+# with summarization_tab:
+#     st.title("📄 응답 요약")
+#     if prompt:
+#         st.write("**입력된 프롬프트:**")
+#         st.info(prompt)
 
-        # 각 AI 응답 요약
-        summaries = [
-            summarize_text(response)
-            for response in [
-                (
-                    st.session_state["gpt_responses"][-1]
-                    if st.session_state["gpt_responses"]
-                    else ""
-                ),
-                (
-                    st.session_state["gemini_responses"][-1]
-                    if st.session_state["gemini_responses"]
-                    else ""
-                ),
-                (
-                    st.session_state["claude_responses"][-1]
-                    if st.session_state["claude_responses"]
-                    else ""
-                ),
-            ]
-        ]
+#         # 각 AI 응답 요약
+#         summaries = [
+#             summarize_text(response)
+#             for response in [
+#                 (
+#                     st.session_state["gpt_responses"][-1]
+#                     if st.session_state["gpt_responses"]
+#                     else ""
+#                 ),
+#                 (
+#                     st.session_state["gemini_responses"][-1]
+#                     if st.session_state["gemini_responses"]
+#                     else ""
+#                 ),
+#                 (
+#                     st.session_state["claude_responses"][-1]
+#                     if st.session_state["claude_responses"]
+#                     else ""
+#                 ),
+#             ]
+#         ]
 
-        ai_models = ["ChatGPT", "Gemini", "Claude"]
-        for model, summary in zip(ai_models, summaries):
-            st.subheader(f"{model} 요약:")
-            st.write(summary)
+#         ai_models = ["ChatGPT", "Gemini", "Claude"]
+#         for model, summary in zip(ai_models, summaries):
+#             st.subheader(f"{model} 요약:")
+#             st.write(summary)
 
-    else:
-        st.write("프롬프트를 입력한 후 요약 결과를 확인하세요.")
+#     else:
+#         st.write("프롬프트를 입력한 후 요약 결과를 확인하세요.")
 
-# 탭: WordCloud
-with wordcloud_tab:
-    st.title("☁️ WordCloud")
-    if prompt:
-        st.write("**입력된 프롬프트:**")
-        st.info(prompt)
+# # 탭: WordCloud
+# with wordcloud_tab:
+#     st.title("☁️ WordCloud")
+#     if prompt:
+#         st.write("**입력된 프롬프트:**")
+#         st.info(prompt)
 
-        wordcloud_image = generate_wordcloud(prompt)
+#         wordcloud_image = generate_wordcloud(prompt)
 
-        if wordcloud_image:
-            st.image(
-                f"data:image/png;base64,{wordcloud_image}", use_container_width=True
-            )
-        else:
-            st.write("WordCloud를 생성할 내용이 없습니다.")
-    else:
-        st.write("프롬프트를 입력한 후 WordCloud를 확인하세요.")
+#         if wordcloud_image:
+#             st.image(
+#                 f"data:image/png;base64,{wordcloud_image}", use_container_width=True
+#             )
+#         else:
+#             st.write("WordCloud를 생성할 내용이 없습니다.")
+#     else:
+#         st.write("프롬프트를 입력한 후 WordCloud를 확인하세요.")
