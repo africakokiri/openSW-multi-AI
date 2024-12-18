@@ -1,4 +1,5 @@
 __pycache__
 .cosmos
-.env
+.env*
 .DS_Store
+.streamlit/secrets.toml

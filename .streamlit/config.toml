@@ -1,2 +1,8 @@
 [theme]
 base="light"
+
+[server]
+runOnSave = true
+
+[connections.gsheets]
+spreadsheet = "https://docs.google.com/spreadsheets/d/1YKHO1DJp9uTfbS6u_JDz8vj2gGTpDG4m8Rbh2QHQYUY/edit?usp=sharing"
