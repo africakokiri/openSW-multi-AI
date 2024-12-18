@@ -18,19 +18,21 @@ from io import BytesIO
 import base64
 
 # 요약 모델 초기화
-summarizer = pipeline("summarization")
-
-# 비동기 요약 함수
-async def summarize_text_async(text, max_length=60, min_length=25):
-    """비동기식으로 텍스트 요약"""
-    if not text or len(text.strip()) == 0:
-        return "요약할 내용이 없습니다."
+def load_summarizer():
+    """요약 모델을 불러오는 함수"""
     try:
-        return await asyncio.to_thread(
-            lambda: summarizer(text, max_length=max_length, min_length=min_length, do_sample=False)[0]["summary_text"]
-        )
+        return pipeline("summarization", model="sshleifer/distilbart-cnn-12-6")
     except Exception as e:
-        return f"요약 중 오류 발생: {str(e)}"
+        print(f"모델 로드 오류: {e}")
+        return None
+
+async def summarize_text_async(summarizer, text):
+    """비동기식 요약 함수"""
+    if not summarizer or not text:
+        return "요약할 내용이 없습니다."
+    return await asyncio.to_thread(
+        lambda: summarizer(text, max_length=60, min_length=25, do_sample=False)[0]["summary_text"]
+    )
 
 # 비동기 WordCloud 생성 함수
 async def generate_wordcloud_async(text):
