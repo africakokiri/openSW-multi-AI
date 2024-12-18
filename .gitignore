@@ -1,4 +1,4 @@
 __pycache__
 .cosmos
-.env
+.env*
 .DS_Store
